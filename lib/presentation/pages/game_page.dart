@@ -9,6 +9,11 @@ class GamePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final prov = Provider.of<BoardProvider>(context);
     final humanWhitePerspective = prov.mode == GameMode.vsAI ? prov.humanControlsWhite : true;
+    const paper = Color(0xFFFBF9F4);
+    const ink = Colors.black87;
+    const shadow = Color(0x55000000);
+    const squareLight = Color(0xFFF5F1E8);
+    const squareDark = Color(0xFFC0B6A4);
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
@@ -17,21 +22,21 @@ class GamePage extends StatelessWidget {
         Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const LandingPage()));
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFFFBF9F4), // Off-white paper color
+        backgroundColor: paper,
         appBar: AppBar(
-          backgroundColor: const Color(0xFFFBF9F4),
+          backgroundColor: paper,
           elevation: 0,
           title: Text(
             'Paper Chess',
             style: TextStyle(
-              color: Colors.black87,
+              color: ink,
               fontFamily: 'serif',
               fontWeight: FontWeight.bold,
               fontSize: 22,
             ),
           ),
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.black87),
+            icon: Icon(Icons.arrow_back, color: ink),
             onPressed: () {
               Provider.of<BoardProvider>(context, listen: false).reset();
               Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const LandingPage()));
@@ -45,12 +50,12 @@ class GamePage extends StatelessWidget {
               margin: const EdgeInsets.symmetric(horizontal: 50, vertical: 6),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: const Color(0xFFFBF9F4),
-                border: Border.all(color: Colors.black87, width: 2),
+                color: paper,
+                border: Border.all(color: ink, width: 2),
                 borderRadius: BorderRadius.circular(8),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.3),
+                    color: shadow,
                     blurRadius: 10,
                     spreadRadius: 2,
                     offset: const Offset(2, 3),
@@ -70,7 +75,7 @@ class GamePage extends StatelessWidget {
                       fontFamily: 'serif',
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: Colors.black87,
+                      color: ink,
                     ),
                   ),
                   if (prov.whiteInCheck || prov.blackInCheck)
@@ -101,26 +106,20 @@ class GamePage extends StatelessWidget {
                     child: Stack(
                       alignment: Alignment.center,
                       children: [
-                        // Back face (3D depth)
-                        Positioned(
-                          right: -2,
-                          bottom: -3,
-                          child: AspectRatio(
-                            aspectRatio: 1.0,
+                        // Back face (3D depth) — use constrained fill instead of unconstrained AspectRatio
+                        Positioned.fill(
+                          child: Transform.translate(
+                            offset: const Offset(-2, -3),
                             child: Container(
                               decoration: BoxDecoration(
                                 color: Colors.grey[500],
-                                border: Border.all(
-                                  color: Colors.black87,
-                                  width: 2,
-                                ),
                                 borderRadius: BorderRadius.circular(12),
                                 boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.4),
+                                  const BoxShadow(
+                                    color: Colors.black,
                                     blurRadius: 20,
                                     spreadRadius: 5,
-                                    offset: const Offset(5, 6),
+                                    offset: Offset(5, 6),
                                   ),
                                 ],
                               ),
@@ -130,23 +129,23 @@ class GamePage extends StatelessWidget {
                         // Front face (chess board)
                         Container(
                           decoration: BoxDecoration(
-                            color: const Color(0xFFFBF9F4),
+                            color: paper,
                             border: Border.all(
-                              color: Colors.black87,
+                              color: ink,
                               width: 2.5,
                             ),
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.35),
+                                color: shadow,
                                 blurRadius: 16,
                                 spreadRadius: 4,
                                 offset: const Offset(4, 5),
                               ),
-                              BoxShadow(
-                                color: Colors.white.withValues(alpha: 0.6),
+                              const BoxShadow(
+                                color: Colors.white,
                                 blurRadius: 2,
-                                offset: const Offset(-2, -2),
+                                offset: Offset(-2, -2),
                                 spreadRadius: 2,
                               ),
                             ],
@@ -173,8 +172,10 @@ class GamePage extends StatelessWidget {
                                 final isWhiteKing = p == 'wK';
                                 final isBlackKing = p == 'bK';
                                 final kingInCheck = (isWhiteKing && prov.whiteInCheck) || (isBlackKing && prov.blackInCheck);
-                                final baseColor = ((uiR + uiC) % 2 == 0) ? const Color(0xFFF5F1E8) : Colors.grey[400]!;
-                                final bgColor = isSelected ? Colors.yellow[100]! : (isLegalTarget ? Colors.green[200]! : baseColor);
+                                final baseColor = ((uiR + uiC) % 2 == 0) ? squareLight : squareDark;
+                                final bgColor = isSelected
+                                     ? const Color(0xFFE8E4D8)
+                                     : (isLegalTarget ? const Color(0xFFD9D0C0) : baseColor);
                                 return AnimatedContainer(
                                   duration: const Duration(milliseconds: 160),
                                   curve: Curves.easeInOut,
@@ -182,14 +183,14 @@ class GamePage extends StatelessWidget {
                                       ? BoxDecoration(
                                           color: bgColor,
                                           border: Border.all(color: Colors.red, width: 2),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: Colors.red.withValues(alpha: 0.6),
-                                              blurRadius: 8,
-                                              spreadRadius: 2,
-                                            )
-                                          ],
-                                        )
+                                           boxShadow: [
+                                             BoxShadow(
+                                              color: Colors.red.withOpacity(0.6),
+                                               blurRadius: 8,
+                                               spreadRadius: 2,
+                                             )
+                                           ],
+                                         )
                                       : BoxDecoration(color: bgColor),
                                   child: InkWell(
                                     onTap: () {
@@ -205,7 +206,7 @@ class GamePage extends StatelessWidget {
                                       child: Text(
                                         _unicodeForPiece(p),
                                         key: ValueKey(p + boardR.toString() + boardC.toString()),
-                                        style: const TextStyle(fontSize: 24),
+                                        style: TextStyle(fontSize: 24, color: ink),
                                       ),
                                     ),
                                   ),
@@ -273,6 +274,9 @@ class GamePage extends StatelessWidget {
                   //   ),
                   // if (prov.mode == GameMode.vsAI) const SizedBox(width: 12),
                   _build3DButton(
+                    context,
+                    paper: paper,
+                    ink: ink,
                     onPressed: () => Provider.of<BoardProvider>(context, listen: false).reset(),
                     label: 'Reset Game',
                   ),
@@ -286,69 +290,70 @@ class GamePage extends StatelessWidget {
     );
   }
 
-  Widget _build3DButton({required VoidCallback onPressed, required String label}) {
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        // Back face
-        Positioned(
-          right: -3,
-          bottom: -4,
-          child: Container(
-            width: 120,
-            height: 44,
+  Widget _build3DButton(BuildContext context, {required VoidCallback onPressed, required String label, required Color paper, required Color ink}) {
+    const shadow = Color(0x55000000);
+     return Stack(
+        alignment: Alignment.center,
+        children: [
+          // Back face
+          Positioned(
+            right: -3,
+            bottom: -4,
+            child: Container(
+              width: 120,
+              height: 44,
+              decoration: BoxDecoration(
+                color: Colors.grey[700],
+                border: Border.all(
+                  color: ink,
+                  width: 1.5,
+                ),
+                borderRadius: BorderRadius.circular(6),
+              ),
+            ),
+          ),
+          // Front face
+          Container(
             decoration: BoxDecoration(
-              color: Colors.grey[700],
+              color: paper,
               border: Border.all(
-                color: Colors.black87,
-                width: 1.5,
+                color: ink,
+                width: 2,
               ),
               borderRadius: BorderRadius.circular(6),
+              boxShadow: [
+                BoxShadow(
+                  color: shadow,
+                  blurRadius: 10,
+                  spreadRadius: 2,
+                  offset: const Offset(2, 3),
+                ),
+              ],
             ),
-          ),
-        ),
-        // Front face
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border.all(
-              color: Colors.black87,
-              width: 2,
-            ),
-            borderRadius: BorderRadius.circular(6),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.3),
-                blurRadius: 10,
-                spreadRadius: 2,
-                offset: const Offset(2, 3),
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.transparent,
+                shadowColor: Colors.transparent,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(4),
+                ),
               ),
-            ],
-          ),
-          child: ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.transparent,
-              shadowColor: Colors.transparent,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(4),
-              ),
-            ),
-            onPressed: onPressed,
-            child: Text(
-              label,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-                fontFamily: 'serif',
+              onPressed: onPressed,
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: ink,
+                  fontFamily: 'serif',
+                ),
               ),
             ),
           ),
-        ),
-      ],
-    );
-  }
+        ],
+      );
+    }
 
   String _unicodeForPiece(String p) {
     switch (p) {

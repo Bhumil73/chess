@@ -1,0 +1,6 @@
+# Keystore credentials for Play Store release
+# DO NOT commit this file to version control!
+KEYSTORE_PASSWORD=your_keystore_password_here
+KEY_ALIAS=paper-chess-key
+KEY_PASSWORD=your_key_password_here
+
