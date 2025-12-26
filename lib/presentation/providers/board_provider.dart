@@ -20,6 +20,9 @@ class BoardProvider extends ChangeNotifier {
   List<ChessMove> legalMovesForSelected = const [];
   bool isCheckmate = false;
   String? checkmateWinner; // 'White' or 'Black'
+  bool isStalemate = false;
+  bool isDraw = false;
+  String? drawReason; // e.g., 'Stalemate', 'Insufficient material'
   bool whiteInCheck = false;
   bool blackInCheck = false;
 
@@ -52,6 +55,7 @@ class BoardProvider extends ChangeNotifier {
 
   void tapSquare(int r, int c) {
     if (isCheckmate) return;
+    if (isDraw || isStalemate) return;
     // Prevent input during AI computing or when it's AI's turn in vsAI mode
     if (mode == GameMode.vsAI) {
       final isHumanTurn = (whiteToMove && humanControlsWhite) || (!whiteToMove && !humanControlsWhite);
@@ -102,6 +106,9 @@ class BoardProvider extends ChangeNotifier {
     selectedR = null; selectedC = null; legalMovesForSelected = const [];
     isCheckmate = false;
     checkmateWinner = null;
+    isStalemate = false;
+    isDraw = false;
+    drawReason = null;
     whiteInCheck = false;
     blackInCheck = false;
     notifyListeners();
@@ -142,6 +149,19 @@ class BoardProvider extends ChangeNotifier {
   }
 
   void _applyMove(ChessMove m) {
+    // Reject any move that isn't legal (includes king-in-check filtering)
+    final legal = LegalMoveGenerator().generateMoves(board, whiteToMove);
+    final isLegal = legal.any((lm) =>
+        lm.fromRank == m.fromRank &&
+        lm.fromFile == m.fromFile &&
+        lm.toRank == m.toRank &&
+        lm.toFile == m.toFile &&
+        (lm.promotion == m.promotion || (lm.promotion == null && m.promotion == null)) &&
+        lm.isEnPassant == m.isEnPassant &&
+        lm.isCastle == m.isCastle);
+    if (!isLegal) {
+      return; // ignore illegal attempt
+    }
     final moving = board.pieceAt(m.fromRank, m.fromFile);
     final isPawn = moving.length > 1 && moving[1] == 'P';
     final lastRank = whiteToMove ? 7 : 0;
@@ -154,6 +174,7 @@ class BoardProvider extends ChangeNotifier {
     whiteToMove = !whiteToMove;
     selectedR = null; selectedC = null; legalMovesForSelected = const [];
     _evaluateCheckmate();
+    _evaluateStalemateOrDraw();
     _updateCheckStatus();
     notifyListeners();
   }
@@ -168,10 +189,75 @@ class BoardProvider extends ChangeNotifier {
     }
   }
 
+  void _evaluateStalemateOrDraw() {
+    if (isCheckmate) return;
+    final gen = LegalMoveGenerator();
+    final moves = gen.generateMoves(board, whiteToMove);
+    final inCheck = gen.isInCheck(board, whiteToMove);
+    if (!inCheck && moves.isEmpty) {
+      isStalemate = true;
+      isDraw = true;
+      drawReason = 'Stalemate';
+      return;
+    }
+    if (_isInsufficientMaterial()) {
+      isDraw = true;
+      drawReason = 'Insufficient material';
+    }
+  }
+
   void _updateCheckStatus() {
     final gen = LegalMoveGenerator();
     whiteInCheck = gen.isInCheck(board, true);
     blackInCheck = gen.isInCheck(board, false);
+  }
+
+  bool _isInsufficientMaterial() {
+    // Basic cases: K vs K; K+minor vs K; K+B vs K+B with same color bishops.
+    final pieces = <String>[];
+    for (var r = 0; r < 8; r++) {
+      for (var c = 0; c < 8; c++) {
+        final p = board.pieceAt(r, c);
+        if (p.isNotEmpty) pieces.add(p);
+      }
+    }
+    // Only kings
+    if (pieces.every((p) => p.endsWith('K'))) return true;
+
+    // Count pieces
+    final minors = pieces.where((p) => p.endsWith('B') || p.endsWith('N')).toList();
+    final others = pieces.where((p) => !(p.endsWith('K') || p.endsWith('B') || p.endsWith('N'))).toList();
+
+    // If any rooks, queens, pawns remain, not insufficient
+    if (others.isNotEmpty) return false;
+
+    // King + single minor vs King
+    if (pieces.length == 3 && minors.length == 1) return true;
+
+    // King + bishop vs King + bishop with same colored bishops
+    if (pieces.length == 4 && minors.length == 2 && minors.every((m) => m.endsWith('B'))) {
+      // Determine bishop square colors
+      int? color1;
+      int? color2;
+      for (var r = 0; r < 8; r++) {
+        for (var c = 0; c < 8; c++) {
+          final p = board.pieceAt(r, c);
+          if (p.endsWith('B')) {
+            final color = (r + c) % 2; // 0 light, 1 dark
+            if (color1 == null) {
+              color1 = color;
+            } else {
+              color2 = color;
+            }
+          }
+        }
+      }
+      if (color1 != null && color2 != null && color1 == color2) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   static Map<String, dynamic> _runSearch(Map<String, dynamic> payload) {

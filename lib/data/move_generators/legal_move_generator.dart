@@ -58,7 +58,13 @@ class LegalMoveGenerator implements MoveGenerator {
     final r1 = r + dir;
     if (_inBounds(r1, c) && board.pieceAt(r1, c).isEmpty) {
       final isPromo = (isWhite && r1 == 7) || (!isWhite && r1 == 0);
-      out.add(ChessMove(r, c, r1, c, promotion: isPromo ? 'Q' : null));
+      if (isPromo) {
+        for (final promo in const ['Q', 'R', 'B', 'N']) {
+          out.add(ChessMove(r, c, r1, c, promotion: promo));
+        }
+      } else {
+        out.add(ChessMove(r, c, r1, c));
+      }
       // Forward two from start
       final r2 = r + 2 * dir;
       if (r == startRank && board.pieceAt(r2, c).isEmpty) {
@@ -73,7 +79,13 @@ class LegalMoveGenerator implements MoveGenerator {
         final t = board.pieceAt(rr, cc);
         if (t.isNotEmpty && t[0] != (isWhite ? 'w' : 'b') && !_isOpponentKing(t)) {
           final isPromo = (isWhite && rr == 7) || (!isWhite && rr == 0);
-          out.add(ChessMove(r, c, rr, cc, promotion: isPromo ? 'Q' : null));
+          if (isPromo) {
+            for (final promo in const ['Q', 'R', 'B', 'N']) {
+              out.add(ChessMove(r, c, rr, cc, promotion: promo));
+            }
+          } else {
+            out.add(ChessMove(r, c, rr, cc));
+          }
         }
       }
     }
