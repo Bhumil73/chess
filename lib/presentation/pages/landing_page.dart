@@ -59,7 +59,7 @@ class _LandingPageState extends State<LandingPage> with SingleTickerProviderStat
             opacity: _fadeIn,
             child: SlideTransition(
               position: _slideIn,
-              child: SingleChildScrollView(
+              child: SafeArea(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -85,6 +85,9 @@ class _LandingPageState extends State<LandingPage> with SingleTickerProviderStat
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(12),
                               child: GridView.count(
+                                physics: const NeverScrollableScrollPhysics(),
+                                shrinkWrap: true,
+                                padding: EdgeInsets.zero,
                                 crossAxisCount: 8,
                                 children: List.generate(64, (idx) {
                                   final r = idx ~/ 8;
@@ -117,7 +120,7 @@ class _LandingPageState extends State<LandingPage> with SingleTickerProviderStat
                         ],
                       ),
                     ),
-                    const SizedBox(height: 40),
+                    const SizedBox(height: 24),
                     Hero(
                       tag: 'app-title',
                       child: Material(
@@ -125,7 +128,7 @@ class _LandingPageState extends State<LandingPage> with SingleTickerProviderStat
                         child: Text(
                           'Paper Chess',
                           style: TextStyle(
-                            fontSize: 42,
+                            fontSize: 36,
                             fontWeight: FontWeight.bold,
                             color: Colors.black87,
                             letterSpacing: 1.5,
@@ -134,10 +137,12 @@ class _LandingPageState extends State<LandingPage> with SingleTickerProviderStat
                         ),
                       ),
                     ),
-                    const SizedBox(height: 40),
-                    Container(
+                    const SizedBox(height: 24),
+                    // Controls area
+                    Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24),
                       child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           // Game Mode Card with 3D cuboid effect
                           _build3DCuboidCard(
@@ -181,7 +186,7 @@ class _LandingPageState extends State<LandingPage> with SingleTickerProviderStat
                               ],
                             ),
                           ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 16),
                           // Color Selection Card with 3D cuboid effect
                           AnimatedOpacity(
                             opacity: _vsAiSelected ? 1 : 0,
@@ -233,7 +238,7 @@ class _LandingPageState extends State<LandingPage> with SingleTickerProviderStat
                         ],
                       ),
                     ),
-                    const SizedBox(height: 40),
+                    const Spacer(),
                     // 3D Cuboid Start Game button
                     _build3DCuboidButton(
                       onPressed: () async {
@@ -249,7 +254,7 @@ class _LandingPageState extends State<LandingPage> with SingleTickerProviderStat
                         }
                       },
                     ),
-                    const SizedBox(height: 40),
+                    const SizedBox(height: 24),
                   ],
                 ),
               ),
