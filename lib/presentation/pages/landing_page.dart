@@ -50,6 +50,11 @@ class _LandingPageState extends State<LandingPage> with SingleTickerProviderStat
   Widget build(BuildContext context) {
     final prov = Provider.of<BoardProvider>(context, listen: false);
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: const Color(0xFFFBF9F4),
+        elevation: 0,
+        title: const Text(''),
+      ),
       body: Container(
         decoration: BoxDecoration(
           color: const Color(0xFFFBF9F4), // Off-white paper color
@@ -80,41 +85,37 @@ class _LandingPageState extends State<LandingPage> with SingleTickerProviderStat
                             height: 180,
                             decoration: BoxDecoration(
                               color: const Color(0xFFFBF9F4),
-                              borderRadius: BorderRadius.circular(12),
                             ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: GridView.count(
-                                physics: const NeverScrollableScrollPhysics(),
-                                shrinkWrap: true,
-                                padding: EdgeInsets.zero,
-                                crossAxisCount: 8,
-                                children: List.generate(64, (idx) {
-                                  final r = idx ~/ 8;
-                                  final c = idx % 8;
-                                  final isLight = (r + c) % 2 == 0;
-                                  final piece = _getPieceAt(r, c);
-                                  return Container(
-                                    decoration: BoxDecoration(
-                                      color: isLight ? const Color(0xFFF5F1E8) : Colors.grey[300],
-                                      border: Border.all(
-                                        color: Colors.grey[600]!,
-                                        width: 0.5,
+                            child: GridView.count(
+                              physics: const NeverScrollableScrollPhysics(),
+                              shrinkWrap: true,
+                              padding: EdgeInsets.zero,
+                              crossAxisCount: 8,
+                              children: List.generate(64, (idx) {
+                                final r = idx ~/ 8;
+                                final c = idx % 8;
+                                final isLight = (r + c) % 2 == 0;
+                                final piece = _getPieceAt(r, c);
+                                return Container(
+                                  decoration: BoxDecoration(
+                                    color: isLight ? const Color(0xFFF5F1E8) : Colors.grey[300],
+                                    border: Border.all(
+                                      color: Colors.grey[600]!,
+                                      width: 0.5,
+                                    ),
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      piece,
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black87,
                                       ),
                                     ),
-                                    child: Center(
-                                      child: Text(
-                                        piece,
-                                        style: const TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.black87,
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                }),
-                              ),
+                                  ),
+                                );
+                              }),
                             ),
                           ),
                         ],
